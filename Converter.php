@@ -31,9 +31,63 @@ class Converter
         $this->target_db_name = $target_db_name;
     }
 
+    // Main method for database conversion
     public function convert()
     {
-
+        if ($this->source_db_type == "mysql" && $this->target_db_type == "mysql") {
+            $this->mysql2mysql();
+        } elseif ($this->source_db_type == "mysql" && $this->target_db_type == "sql") {
+            $this->mysql2sql();
+        } elseif ($this->source_db_type == "sql" && $this->target_db_type == "mysql") {
+            $this->sql2mysql();
+        } elseif ($this->source_db_type == "sql" && $this->target_db_type == "sql") {
+            $this->sql2sql();
+        }
     }
+
+    // Database conversion mysql to mysql
+    private function mysql2mysql()
+    {
+        $this->mysqlCreateDb();
+    }
+
+    // Database conversion mysql to sql
+    private function mysql2sql()
+    {
+        $this->sqlCreateDb();
+    }
+
+    // Database conversion sql to mysql
+    private function sql2mysql()
+    {
+        $this->mysqlCreateDb();
+    }
+
+    // Database conversion sql to sql
+    private function sql2sql()
+    {
+        $this->sqlCreateDb();
+    }
+
+    // Creates mysql database if it doesn't exist
+    private function mysqlCreateDb()
+    {
+        $conn = mysqli_connect($this->target_db_server, $this->target_db_user, $this->target_db_pass);
+        $sql = "CREATE DATABASE IF NOT EXISTS $this->target_db_name";
+        mysqli_query($conn, $sql);
+        mysqli_close($conn);
+    }
+
+    // Creates sql database if it doesn't exist
+    private function sqlCreateDb()
+    {
+        $info = array("UID" => "$this->target_db_user", "PWD" => "$this->target_db_pass");
+        $conn = sqlsrv_connect($this->target_db_server, $info);
+        $sql = "IF NOT EXISTS(SELECT * FROM sys.databases WHERE name = '$this->target_db_name') BEGIN CREATE DATABASE [$this->target_db_name] END";
+        sqlsrv_query($conn, $sql);
+        sqlsrv_close($conn);
+    }
+
+
 
 }
